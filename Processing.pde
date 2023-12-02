@@ -22,7 +22,6 @@ int runButtonWidth = 80;
 int runButtonHeight = 80;
 int runButtonFontSize = 30;
 ButtonColors buttonColors = new ButtonColors(color(191), color(255), color(63), color(0));
-
 int buttonMargin = 10;
 
 DayBase[] daySolutions;
@@ -45,6 +44,10 @@ Button customInputButton;
 Button runDayButton;
 Button backButton;
 
+boolean isSelectingInput;
+boolean isStartingDaySolution;
+boolean isRunningDaySolution;
+
 void settings() {
     size(this.resHorizontal, this.resVertical);
     println("Resolution is " + this.resHorizontal + "x" + this.resVertical);
@@ -56,6 +59,10 @@ void settings() {
     this.hoveredButton = null;
     
     this.selectedDayIndex = -1;
+
+    this.isSelectingInput = false;
+    this.isStartingDaySolution = false;
+    this.isRunningDaySolution = false;
 
     this.daySolutions = new DayBase[25];
     this.dayButtons = new Button[25];
@@ -106,36 +113,59 @@ void draw() {
 
     background(0);
 
-    if (this.selectedDayIndex < 0) {
-        Button button;
-        for (int i = 0; i < this.dayButtons.length; i++) {
-            this.dayButtons[i].drawButton();
-        }
+    if (this.isStartingDaySolution || this.isRunningDaySolution) {
+        drawDaySolution();
+    } else if (this.isSelectingInput) {
+        drawInputSelection();
     } else {
-        this.backButton.drawButton();
-        this.dayButtons[this.selectedDayIndex].drawButtonAt(inputMenuDayX, this.inputMenuDayY);
-
-        fill(255);
-        textSize(this.inputLabelFontSize);
-        textAlign(CENTER, CENTER);
-        text("Select input", this.middleX, this.inputLabelY);
-        this.defaultInputButton.drawButton();
-        this.customInputButton.drawButton();
-        this.runDayButton.drawButton();
+        drawDaySelection();
     }
 }
 
+void drawDaySelection() {
+    for (int i = 0; i < this.dayButtons.length; i++) {
+        this.dayButtons[i].drawButton();
+    }
+}
+
+void drawInputSelection() {
+    this.backButton.drawButton();
+    this.dayButtons[this.selectedDayIndex].drawButtonAt(inputMenuDayX, this.inputMenuDayY);
+
+    fill(255);
+    textSize(this.inputLabelFontSize);
+    textAlign(CENTER, CENTER);
+    text("Select input", this.middleX, this.inputLabelY);
+    
+    this.defaultInputButton.drawButton();
+    this.customInputButton.drawButton();
+    this.runDayButton.drawButton();
+}
+
+void drawDaySolution() {
+    this.backButton.drawButton();
+    this.selectedDaySolution.draw();
+}
+
 void update(int x, int y) {
-    if (this.selectedDayIndex < 0) {
-        this.updateButtonGrid(x, y);
-    } else {
+    this.hoveredButtonIndex = -1;
+
+    if (this.isStartingDaySolution || this.isRunningDaySolution) {
+        this.updateDaySolution(x, y);
+
+        if (!this.isRunningDaySolution) {
+            this.runDaySolution();
+        } else if (!this.selectedDaySolution.isRunning) {
+            this.finishDaySolution();
+        }
+    } else if (this.isSelectingInput) {
         this.updateInputSelection(x, y);
+    } else {
+        this.updateButtonGrid(x, y);
     }
 }
 
 void updateButtonGrid(int x, int y) {
-    this.hoveredButtonIndex = -1;
-
     for (int i = 0; i < this.dayButtons.length; i++) {
         if (this.dayButtons[i].containsPoint(x, y)) {
             this.hoveredButtonIndex = i;
@@ -143,89 +173,120 @@ void updateButtonGrid(int x, int y) {
         }
     }
 
-    if (this.hoveredButtonIndex >= 0) {
-        if (this.hoveredButton != null) {
-            this.hoveredButton.onMouseOut();
-        }
-
-        this.hoveredButton = this.dayButtons[this.hoveredButtonIndex];
-        this.hoveredButton.onMouseOver();
+    if (this.hoveredButtonIndex < 0) {
+        this.onNoButtonHovered();
     } else {
-        if (this.hoveredButton != null) {
-            this.hoveredButton.onMouseOut();
-        }
-
-        this.hoveredButton = null;
+        this.onButtonHovered(this.dayButtons[this.hoveredButtonIndex]);
     }
 }
 
 void updateInputSelection(int x, int y) {
-    this.hoveredButtonIndex = -1;
-
     if (this.backButton.containsPoint(x, y)) {
-        this.hoveredButtonIndex = 3;
-    } else if (this.runDayButton.containsPoint(x, y)) {
         this.hoveredButtonIndex = 0;
-    } else if (this.defaultInputButton.containsPoint(x, y)) {
+    } else if (this.runDayButton.containsPoint(x, y)) {
         this.hoveredButtonIndex = 1;
-    } else if (this.customInputButton.containsPoint(x, y)) {
+    } else if (this.defaultInputButton.containsPoint(x, y)) {
         this.hoveredButtonIndex = 2;
+    } else if (this.customInputButton.containsPoint(x, y)) {
+        this.hoveredButtonIndex = 3;
     }
 
-    if (this.hoveredButtonIndex >= 0) {
-        if (this.hoveredButton != null) {
-            this.hoveredButton.onMouseOut();
-        }
-
-        if (this.hoveredButtonIndex == 0) {
-            this.hoveredButton = this.runDayButton;
-        } else if (this.hoveredButtonIndex == 1) {
-            this.hoveredButton = this.defaultInputButton;
-        } else if (this.hoveredButtonIndex == 2) {
-            this.hoveredButton = this.customInputButton;
-        } else {
-            this.hoveredButton = this.backButton;
-        }
-
-        this.hoveredButton.onMouseOver();
+    if (this.hoveredButtonIndex < 0) {
+        this.onNoButtonHovered();
     } else {
-        if (this.hoveredButton != null) {
-            this.hoveredButton.onMouseOut();
+        if (this.hoveredButtonIndex == 0) {
+            this.onButtonHovered(this.backButton);
+        } else if (this.hoveredButtonIndex == 1) {
+            this.onButtonHovered(this.runDayButton);
+        } else if (this.hoveredButtonIndex == 2) {
+            this.onButtonHovered(this.defaultInputButton);
+        } else {
+            this.onButtonHovered(this.customInputButton);
         }
+    }
+}
 
+void updateDaySolution(int x, int y) {
+    if (this.backButton.containsPoint(x, y)) {
+        this.hoveredButtonIndex = 0;
+    }
+
+    if (this.hoveredButtonIndex < 0) {
+        this.onNoButtonHovered();
+    } else {
+        this.onButtonHovered(this.backButton);
+    } 
+}
+
+void clearHoveredButton() {
+    this.hoveredButtonIndex = -1;
+    this.onNoButtonHovered();
+}
+
+void onNoButtonHovered() {
+    if (this.hoveredButton != null) {
+        println("Button '" + this.hoveredButton.labelText + "' no longer hovered");
+        this.hoveredButton.onMouseOut();
         this.hoveredButton = null;
     }
+}
+
+void onButtonHovered(Button button) {
+    if (this.hoveredButton != null) {
+        if (this.hoveredButton == button) {
+            return;
+        }
+
+        println("Button '" + this.hoveredButton.labelText + "' no longer hovered");
+        this.hoveredButton.onMouseOut();
+    }
+
+    this.hoveredButton = button;
+    this.hoveredButton.onMouseOver();
+    println("Button '" + this.hoveredButton.labelText + "' now hovered");
 }
 
 void mousePressed() {
     println("Mouse pressed at " + mouseX + "," + mouseY);
 
     if (this.hoveredButton != null) {
-        if (this.hoveredButton.isEnabled) {
-            println("Button[" + this.hoveredButtonIndex + "] '" + this.hoveredButton.labelText + "' clicked!");
+        if (!this.hoveredButton.isEnabled) {
+            println("Button[" + this.hoveredButtonIndex + "] '" + this.hoveredButton.labelText + "' clicked but it was disabled");
+            return;
+        }
 
-            this.hoveredButton.onMouseOut();
-            this.hoveredButton = null;
+        println("Button[" + this.hoveredButtonIndex + "] '" + this.hoveredButton.labelText + "' clicked!");
 
-            if (this.selectedDayIndex < 0) {
-                this.selectDay(this.hoveredButtonIndex);
-            } else {
-                if (this.hoveredButtonIndex == 0) {
-                    this.runDay();
-                } else if (this.hoveredButtonIndex <= 2) {
-                    this.selectInput(this.hoveredButtonIndex - 1);
-                } else {
-                    this.selectedDayIndex = -1;
-                    this.selectedDaySolution = null;
-                }
+        this.hoveredButton.onMouseOut();
+        this.hoveredButton = null;
+
+        if (this.isStartingDaySolution || this.isRunningDaySolution) {
+            // Back to input selection once it's possible to interrupt solutions
+        } else if (this.isSelectingInput) {
+            if (this.hoveredButtonIndex == 0) {
+                // Back button
+                this.isSelectingInput = false;
+                this.selectedDayIndex = -1;
+                this.selectedDaySolution = null;
+            } else if (this.hoveredButtonIndex == 1) {
+                // Run button
+                this.startDaySolution();
+            } else if (this.hoveredButtonIndex == 2) {
+                // Default input button
+                this.selectInput(0);
+            } else if (this.hoveredButtonIndex == 3) {
+                // Custom input button
+                this.selectInput(1);
             }
         } else {
-            println("Button[" + this.hoveredButtonIndex + "] '" + this.hoveredButton.labelText + "' clicked but it was disabled");
+            this.selectDay(this.hoveredButtonIndex);
         }
     }
 }
 
 void selectDay(int index) {
+    this.clearHoveredButton();
+
     this.selectedDayIndex = index;
     this.selectedDaySolution = this.daySolutions[index];
 
@@ -240,6 +301,8 @@ void selectDay(int index) {
         println("Found input of " + inputStrings.length + " lines!");
         this.defaultInput = inputStrings;
     }
+
+    this.isSelectingInput = true;
 }
 
 void selectInput(int index) {
@@ -250,7 +313,7 @@ void selectInput(int index) {
     } else {
         this.selectedInput = this.getClipboardInput();
     }
-    
+
     if (this.selectedInput.length > 0) {
         this.runDayButton.isEnabled = true;
         this.selectedDaySolution.setInput(this.selectedInput);
@@ -277,20 +340,31 @@ String[] getClipboardInput() {
     return input;
 }
 
-void runDay() {
-    this.selectedDaySolution.run();
+void startDaySolution() {
+    this.clearHoveredButton();
+    this.isSelectingInput = false;
+    this.isStartingDaySolution = true;
+}
+
+void runDaySolution() {
+    this.isRunningDaySolution = true;
+    this.isStartingDaySolution = false;
+    this.selectedDaySolution.start();
+}
+
+void finishDaySolution() {
+    this.isRunningDaySolution = false;
+    this.isSelectingInput = true;
+    println("Day solution run finished!");
 }
 
 DayBase getDaySolution(int dayIndex) {
-    DayBase dayObject = null;
-
     switch (dayIndex) {
-        case 0: dayObject = new Day01(); break;
+        case 0: return new Day01();
         default:
             println("Unsupported day index " + dayIndex + " provided!");
-            dayObject = new DayBase();
             break;
     }
 
-    return dayObject;
+    return new DayBase();
 }

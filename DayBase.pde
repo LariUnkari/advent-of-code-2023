@@ -1,6 +1,9 @@
 class DayBase {
     public boolean isImplemented;
 
+    public boolean isRunning;
+    public boolean isDone;
+
     String[] input;
 
     DayBase() {
@@ -12,7 +15,20 @@ class DayBase {
         this.input = input;
     }
 
+    void start() {
+        this.isRunning = true;
+        this.run();
+    }
+
     void run() {
         println("No logic to run!");
+    }
+    
+    void stop() {
+        this.isRunning = false;
+    }
+
+    void draw() {
+        
     }
 }

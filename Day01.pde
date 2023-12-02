@@ -8,6 +8,7 @@ class Day01 extends DayBase {
         println("Running Day 01");
         this.part1();
         this.part2();
+        this.stop();
     }
 
     void part1() {
