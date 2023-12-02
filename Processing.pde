@@ -247,10 +247,10 @@ void selectInput(int index) {
         println("Run with default input!");
         this.selectedInput = this.defaultInput;
         this.runDayButton.isEnabled = true;
-        return;
+    } else {
+        this.selectedInput = this.getClipboardInput();
     }
-
-    this.selectedInput = this.getClipboardInput();
+    
     if (this.selectedInput.length > 0) {
         this.runDayButton.isEnabled = true;
         this.selectedDaySolution.setInput(this.selectedInput);
