@@ -21,6 +21,9 @@ int inputButtonFontSize = 20;
 int runButtonWidth = 80;
 int runButtonHeight = 80;
 int runButtonFontSize = 30;
+int backButtonWidth = 100;
+int backButtonHeight = 30;
+int backButtonFontSize = 20;
 ButtonColors buttonColors = new ButtonColors(color(191), color(255), color(63), color(0));
 int buttonMargin = 10;
 
@@ -86,8 +89,8 @@ void settings() {
 
     this.buttonX = this.buttonMargin;
     this.buttonY = this.buttonMargin;
-    this.backButton = new Button(this.buttonX, this.buttonY, this.inputButtonWidth, this.inputButtonHeight,
-        buttonColors, this.inputButtonFontSize, "BACK", true);
+    this.backButton = new Button(this.buttonX, this.buttonY, this.backButtonWidth, this.backButtonHeight,
+        buttonColors, this.backButtonFontSize, "BACK", true);
     
     this.inputMenuDayX = this.middleX - this.dayButtonWidth / 2;
     this.inputMenuDayY = this.middleY - (2 * this.dayButtonHeight + this.dayButtonHeight / 2);
@@ -155,8 +158,6 @@ void update(int x, int y) {
 
         if (!this.isRunningDaySolution) {
             this.runDaySolution();
-        } else if (!this.selectedDaySolution.isRunning) {
-            this.finishDaySolution();
         }
     } else if (this.isSelectingInput) {
         this.updateInputSelection(x, y);
@@ -207,6 +208,8 @@ void updateInputSelection(int x, int y) {
 }
 
 void updateDaySolution(int x, int y) {
+    this.selectedDaySolution.update(x, y);
+
     if (this.backButton.containsPoint(x, y)) {
         this.hoveredButtonIndex = 0;
     }
@@ -249,6 +252,10 @@ void onButtonHovered(Button button) {
 void mousePressed() {
     println("Mouse pressed at " + mouseX + "," + mouseY);
 
+    if (this.selectedDaySolution != null) {
+        this.selectedDaySolution.onMousePressed();
+    }
+
     if (this.hoveredButton != null) {
         if (!this.hoveredButton.isEnabled) {
             println("Button[" + this.hoveredButtonIndex + "] '" + this.hoveredButton.labelText + "' clicked but it was disabled");
@@ -261,7 +268,7 @@ void mousePressed() {
         this.hoveredButton = null;
 
         if (this.isStartingDaySolution || this.isRunningDaySolution) {
-            // Back to input selection once it's possible to interrupt solutions
+            this.stopDaySolution();
         } else if (this.isSelectingInput) {
             if (this.hoveredButtonIndex == 0) {
                 // Back button
@@ -352,10 +359,11 @@ void runDaySolution() {
     this.selectedDaySolution.start();
 }
 
-void finishDaySolution() {
+void stopDaySolution() {
+    this.selectedDaySolution.stop();
+    this.selectedDaySolution = null;
     this.isRunningDaySolution = false;
     this.isSelectingInput = true;
-    println("Day solution run finished!");
 }
 
 DayBase getDaySolution(int dayIndex) {

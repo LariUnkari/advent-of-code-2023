@@ -2,7 +2,6 @@ class DayBase {
     public boolean isImplemented;
 
     public boolean isRunning;
-    public boolean isDone;
 
     String[] input;
 
@@ -23,9 +22,23 @@ class DayBase {
     void run() {
         println("No logic to run!");
     }
-    
+
     void stop() {
+        println("Solution interrupted");
         this.isRunning = false;
+    }
+    
+    void finish() {
+        println("Solution completed");
+        this.isRunning = false;
+    }
+
+    void update(int x, int y) {
+
+    }
+
+    void onMousePressed() {
+        
     }
 
     void draw() {

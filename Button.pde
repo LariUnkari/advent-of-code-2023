@@ -26,7 +26,7 @@ class Button {
     private ButtonColors colors;
 
     public boolean isEnabled;
-    private boolean isMouseOver;
+    public boolean isMouseOver;
 
     Button(int x, int y, int width, int height, ButtonColors colors, int labelFontSize, String labelText, boolean isEnabled) {
         this.x = x;
