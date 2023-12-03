@@ -5,8 +5,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-int resHorizontal = 640;
-int resVertical = 360;
+int resHorizontal = 1280;
+int resVertical = 720;
 
 int middleX;
 int middleY;
