@@ -1,5 +1,4 @@
 class Day02 extends DayBase {
-    private boolean isParsingInput;
     private Day02ParsingData parsingData;
 
     private int pageButtonWidth = 100;
@@ -22,7 +21,36 @@ class Day02 extends DayBase {
     Day02() {
         super();
         this.isImplemented = true;
+    }
 
+    void part1(Day02Game[] games, Day02Set maximums) {
+        int sum = 0;
+
+        for (Day02Game game : games) {
+            if (game.isValid(maximums)) {
+                sum += game.id;
+            // } else {
+            //     println("Game " + game.id + " is impossible");
+            }
+        }
+
+        println("Part 1: sum of possible game ids: " + sum);
+    }
+
+    void part2(Day02Game[] games) {
+        int sum = 0;
+        int power;
+
+        for (Day02Game game : games) {
+            power = game.highest.reds * game.highest.greens * game.highest.blues;
+            //println("Game " + game.id + " power is " + power);
+            sum += power;
+        }
+
+        println("Part 2: sum of game powers: " + sum);
+    }
+
+    void init() {
         this.pageUpButton = new Button(640 - this.buttonMargin - this.pageButtonWidth, this.buttonMargin,
             this.pageButtonWidth, this.pageButtonHeight, this.buttonColors, this.pageButtonFontSize, "UP", true);
         this.pageDownButton = new Button(640 - 2 * (this.buttonMargin + this.pageButtonWidth), this.buttonMargin,
@@ -37,8 +65,9 @@ class Day02 extends DayBase {
         this.gamesPerPage = this.gamesPerRow * this.gamesRowsPerPage;
         this.gamePageCount = this.input.length / this.gamesPerPage + (this.input.length % this.gamesPerPage > 0 ? 1 : 0);
         this.gamePageIndex = 0;
-        this.isParsingInput = true;
+
         this.parsingData = new Day02ParsingData(this.input.length);
+        this.isParsingData = true;
     }
 
     void update(int x, int y) {
@@ -71,16 +100,10 @@ class Day02 extends DayBase {
             this.hoveredButton = null;
         }
 
-        if (!this.isRunning) {
+        if (!this.updateParsingInputData()) {
             return;
         }
 
-        if (!this.parsingData.isComplete) {
-            this.parseGames();
-            return;
-        }
-
-        this.isParsingInput = false;
         this.part1(this.parsingData.games, new Day02Set(12, 13, 14));
         this.part2(this.parsingData.games);
         this.finish();
@@ -106,7 +129,7 @@ class Day02 extends DayBase {
     }
 
     void draw() {
-        if (!this.parsingData.isComplete && !this.isRunning) {
+        if (this.isParsingData && !this.isRunning) {
             return;
         }
 
@@ -160,34 +183,7 @@ class Day02 extends DayBase {
         }
     }
 
-    void part1(Day02Game[] games, Day02Set maximums) {
-        int sum = 0;
-
-        for (Day02Game game : games) {
-            if (game.isValid(maximums)) {
-                sum += game.id;
-            // } else {
-            //     println("Game " + game.id + " is impossible");
-            }
-        }
-
-        println("Part 1: sum of possible game ids: " + sum);
-    }
-
-    void part2(Day02Game[] games) {
-        int sum = 0;
-        int power;
-
-        for (Day02Game game : games) {
-            power = game.highest.reds * game.highest.greens * game.highest.blues;
-            //println("Game " + game.id + " power is " + power);
-            sum += power;
-        }
-
-        println("Part 2: sum of game powers: " + sum);
-    }
-
-    void parseGames() {
+    void stepParsingInputData() {
         if (this.parsingData.gameIndex < this.parsingData.games.length) {
             Day02Game game = this.parseGame(this.input[this.parsingData.gameIndex]);
             //println("Game " + game.id + " highest dice counts: red=" + game.highest.reds + ", green=" + game.highest.greens + ", blue=" + game.highest.blues);
@@ -202,7 +198,7 @@ class Day02 extends DayBase {
             return;
         }
 
-        this.parsingData.isComplete = true;
+        this.isParsingData = false;
     }
 
     Day02Game parseGame(String data) {
@@ -307,12 +303,10 @@ class Day02Game {
 }
 
 class Day02ParsingData {
-    public boolean isComplete;
     public Day02Game[] games;
     public int gameIndex;
 
     Day02ParsingData(int gameCount) {
-        this.isComplete = false;
         this.games = new Day02Game[gameCount];
         this.gameIndex = 0;
     }

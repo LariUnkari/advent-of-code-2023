@@ -277,7 +277,7 @@ void mousePressed() {
                 this.selectedDaySolution = null;
             } else if (this.hoveredButtonIndex == 1) {
                 // Run button
-                this.startDaySolution();
+                this.initDaySolution();
             } else if (this.hoveredButtonIndex == 2) {
                 // Default input button
                 this.selectInput(0);
@@ -347,10 +347,11 @@ String[] getClipboardInput() {
     return input;
 }
 
-void startDaySolution() {
+void initDaySolution() {
     this.clearHoveredButton();
     this.isSelectingInput = false;
     this.isStartingDaySolution = true;
+    this.selectedDaySolution.init();
 }
 
 void runDaySolution() {

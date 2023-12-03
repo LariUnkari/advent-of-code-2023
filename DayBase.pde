@@ -2,6 +2,7 @@ class DayBase {
     public boolean isImplemented;
 
     public boolean isRunning;
+    public boolean isParsingData;
 
     String[] input;
 
@@ -12,6 +13,10 @@ class DayBase {
 
     void setInput(String[] input) {
         this.input = input;
+    }
+
+    void init() {
+
     }
 
     void start() {
@@ -35,6 +40,24 @@ class DayBase {
 
     void update(int x, int y) {
 
+    }
+
+    boolean updateParsingInputData() {
+        if (!this.isRunning) {
+            return false;
+        }
+
+        if (this.isParsingData) {
+            this.stepParsingInputData();
+            return false;
+        }
+
+        return true;
+    }
+
+    void stepParsingInputData() {
+        println("No parsing logic implemented!");
+        this.isParsingData = false;
     }
 
     void onMousePressed() {
