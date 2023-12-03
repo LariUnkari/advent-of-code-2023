@@ -355,6 +355,7 @@ void initDaySolution() {
 }
 
 void runDaySolution() {
+    println("Running Day " + nf(this.selectedDayIndex + 1, 2));
     this.isRunningDaySolution = true;
     this.isStartingDaySolution = false;
     this.selectedDaySolution.start();
@@ -362,7 +363,6 @@ void runDaySolution() {
 
 void stopDaySolution() {
     this.selectedDaySolution.stop();
-    this.selectedDaySolution = null;
     this.isRunningDaySolution = false;
     this.isSelectingInput = true;
 }

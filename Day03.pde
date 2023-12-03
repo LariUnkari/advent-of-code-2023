@@ -36,7 +36,6 @@ class Day03 extends DayBase {
     }
 
     void run() {
-        println("Running Day 03");
         this.parsingData = new Day03ParsingData(this.input.length);
         this.isParsingData = true;
     }

@@ -61,7 +61,6 @@ class Day02 extends DayBase {
     }
 
     void run() {
-        println("Running Day 02");
         this.gamesPerPage = this.gamesPerRow * this.gamesRowsPerPage;
         this.gamePageCount = this.input.length / this.gamesPerPage + (this.input.length % this.gamesPerPage > 0 ? 1 : 0);
         this.gamePageIndex = 0;
