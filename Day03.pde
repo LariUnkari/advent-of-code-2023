@@ -242,7 +242,7 @@ class Day03 extends DayBase {
 
             x = this.tableX + gear.adjStartColumn * this.cellWidth;
             y = this.tableY + asr * this.cellHeight - this.cellHeight / 2;
-            w = this.tableX + gear.adjEndColumn * this.cellWidth - x;
+            w = this.tableX + gear.adjEndColumn * this.cellWidth + this.cellWidth - x;
             h = this.tableY + aer * this.cellHeight + this.cellHeight / 2 - y;
 
             fill(gear.isValid ? this.colorGearValid : this.colorGearInvalid);
@@ -254,6 +254,7 @@ class Day03 extends DayBase {
     void stepParsingInputData() {
         if (this.parsingData.rowIndex >= this.parsingData.lineCount) {
             this.isParsingData = false;
+            this.pageIndex = 0;
             return;
         }
 
@@ -392,7 +393,13 @@ class Day03 extends DayBase {
             gear = this.parsingData.gears.get(this.parsingData.gearIndex);
             gear.isValid = gear.numbers.size() == 2;
 
-            this.parsingData.gearIndex++;
+            this.parsingData.gearIndex++;    
+        
+            if (this.pageIndex + 1 < this.pageCount &&
+                gear.row - this.pageRowStep / 2 > this.pageRowStep * (1 + this.pageIndex)) {
+                this.pageIndex++;
+            }
+
             return false;
         }
 
