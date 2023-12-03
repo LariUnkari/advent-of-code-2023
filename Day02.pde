@@ -1,6 +1,13 @@
 class Day02 extends DayBase {
     private Day02ParsingData parsingData;
 
+    private int maxWidth;
+    private int maxHeight;
+    private int middleX;
+    private int middleY;
+    private int tableX;
+    private int tableY;
+
     private int pageButtonWidth = 100;
     private int pageButtonHeight = 30;
     private int pageButtonFontSize = 20;
@@ -12,8 +19,22 @@ class Day02 extends DayBase {
     private int buttonHoverIndex;
     private Button hoveredButton;
 
-    private int gamesPerRow = 8;
-    private int gamesRowsPerPage = 3;
+    private int gameCardWidth = 124;
+    private int gameCardHeight = 160;
+    private color colorGameValid = color(255);
+    private color colorGameInvalid = color(255, 50, 50);
+    private int gameFontSize = 20;
+    private int gamePowerRowHeight = 16;
+    private int gamePowerFontSize = 14;
+    private int gameHighestRowHeight = 20;
+    private int gameHighestFontSize = 14;
+    private int gameCubesRowHeight = 16;
+    private int gameCubesFontSize = 12;
+    private int gameCubesSize = 10;
+    private int setFontSize = 10;
+    private int setCubeSize = 3;
+    private int gamesPerRow;
+    private int gamesRowsPerPage;
     private int gamesPerPage;
     private int gamePageCount;
     private int gamePageIndex;
@@ -21,13 +42,20 @@ class Day02 extends DayBase {
     Day02() {
         super();
         this.isImplemented = true;
+        this.maxWidth = width - 40;
+        this.maxHeight = height - 60;
+        this.middleX = width / 2;
+        this.middleY = 60 + this.maxHeight / 2;
+        this.tableX = (width - this.maxWidth) / 2;
+        this.tableY = 60;
     }
 
     void part1(Day02Game[] games, Day02Set maximums) {
         int sum = 0;
 
         for (Day02Game game : games) {
-            if (game.isValid(maximums)) {
+            game.isValid = this.isGameValid(maximums, game.highest);
+            if (game.isValid) {
                 sum += game.id;
             // } else {
             //     println("Game " + game.id + " is impossible");
@@ -39,21 +67,20 @@ class Day02 extends DayBase {
 
     void part2(Day02Game[] games) {
         int sum = 0;
-        int power;
 
         for (Day02Game game : games) {
-            power = game.highest.reds * game.highest.greens * game.highest.blues;
+            game.power = game.highest.reds * game.highest.greens * game.highest.blues;
             //println("Game " + game.id + " power is " + power);
-            sum += power;
+            sum += game.power;
         }
 
         println("Part 2: sum of game powers: " + sum);
     }
 
     void init() {
-        this.pageUpButton = new Button(640 - this.buttonMargin - this.pageButtonWidth, this.buttonMargin,
+        this.pageUpButton = new Button(width - this.buttonMargin - this.pageButtonWidth, this.buttonMargin,
             this.pageButtonWidth, this.pageButtonHeight, this.buttonColors, this.pageButtonFontSize, "UP", true);
-        this.pageDownButton = new Button(640 - 2 * (this.buttonMargin + this.pageButtonWidth), this.buttonMargin,
+        this.pageDownButton = new Button(width - 2 * (this.buttonMargin + this.pageButtonWidth), this.buttonMargin,
             this.pageButtonWidth, this.pageButtonHeight, this.buttonColors, this.pageButtonFontSize, "DOWN", true);
 
         this.buttonHoverIndex = -1;
@@ -61,6 +88,8 @@ class Day02 extends DayBase {
     }
 
     void run() {
+        this.gamesPerRow = this.maxWidth / this.gameCardWidth;
+        this.gamesRowsPerPage = this.maxHeight / this.gameCardHeight;
         this.gamesPerPage = this.gamesPerRow * this.gamesRowsPerPage;
         this.gamePageCount = this.input.length / this.gamesPerPage + (this.input.length % this.gamesPerPage > 0 ? 1 : 0);
         this.gamePageIndex = 0;
@@ -115,13 +144,13 @@ class Day02 extends DayBase {
         }
 
         if (this.hoveredButton == this.pageUpButton) {
-            println("Up a page!");
             if (this.gamePageIndex > 0) {
+                println("Up a page!");
                 this.gamePageIndex--;
             }
         } else if (this.hoveredButton == this.pageDownButton) {
-            println("Down a page!");
             if (this.gamePageIndex < this.gamePageCount - 1) {
+                println("Down a page!");
                 this.gamePageIndex++;
             }
         }
@@ -135,13 +164,13 @@ class Day02 extends DayBase {
         this.pageUpButton.drawButton();
         this.pageDownButton.drawButton();
         
-        int posX, posY;
+        int posX, posY, midX, idX, idY, powY, hiX, hiY, cubRX, cubGX, cubBX, cubY, setX, setY;
         Day02Game game;
         Day02Set set;
 
         int index = 0;
         for (int y = 0; y < this.gamesRowsPerPage; y++) {
-            posY = 60 + y * 100;
+            posY = this.tableY + y * this.gameCardHeight;
 
             for (int x = 0; x < this.gamesPerRow; x++) {
                 index = this.gamePageIndex * this.gamesPerPage + y * 10 + x;
@@ -150,28 +179,76 @@ class Day02 extends DayBase {
                 }
 
                 game = this.parsingData.games[index];
-                posX = 20 + x * 75;
+                posX = this.tableX + x * this.gameCardWidth;
+                midX = posX + this.gameCardWidth / 2;
+
+                fill(0);
+                stroke(game.isValid ? this.colorGameValid : this.colorGameInvalid);
+                strokeWeight(2);
+                rect(posX + 2, posY + 2, gameCardWidth - 4, gameCardHeight - 4);
+
+                idX = posX + 5;
+                idY = posY + 5;
 
                 fill(255);
-                textSize(12);
-                textAlign(LEFT);
-                text("Game " + game.id, posX, posY);
-                
                 noStroke();
+                textSize(this.gameFontSize);
+                textAlign(LEFT, TOP);
+                text("Game " + game.id, idX, idY);
+
+                powY = idY + this.gameFontSize + 2;
+                cubRX = idX + 18;
+                cubGX = cubRX + 34;
+                cubBX = cubGX + 34;
+                cubY = powY + this.gamePowerRowHeight + 1;
+                hiX = idX + 2;
+                hiY = cubY - 1;
+
+                textAlign(CENTER, TOP);
+                textSize(this.gamePowerFontSize);
+                text("POWER  " + game.power, midX, powY);
+                textAlign(LEFT, TOP);
+                textSize(this.gameHighestFontSize);
+                text("HI", hiX, hiY);
+
+                fill(255, 50, 50);
+                rect(cubRX, cubY, this.gameCubesSize, this.gameCubesSize);
+
+                fill(0, 255, 0);
+                rect(cubGX, cubY, this.gameCubesSize, this.gameCubesSize);
+
+                fill(100, 100, 255);
+                rect(cubBX, cubY, this.gameCubesSize, this.gameCubesSize);
+
+                fill(255);
+                textSize(this.gameCubesFontSize);
+                textAlign(LEFT, TOP);
+                text(game.highest.reds, cubRX + this.gameCubesSize + 4, cubY);
+                text(game.highest.greens, cubGX + this.gameCubesSize + 4, cubY);
+                text(game.highest.blues, cubBX + this.gameCubesSize + 4, cubY);
+
+                setY = cubY + this.gameCubesRowHeight + 2;
+
+                textSize(this.setFontSize);
+                textAlign(CENTER, TOP);
                 for (int s = 0; s < game.sets.length; s++) {
                     set = game.sets[s];
+                    setX = idX + 5 + s * 18;
+
+                    fill(255);
+                    text(s + 1, setX + 6, setY);
 
                     fill(255, 50, 50);
-                    for (int c = 0; c < set.reds; c++) {
-                        rect(posX + c * 3, posY + 5 + s * 12, 2, 2);
+                    for (int r = 0; r < set.reds; r++) {
+                        rect(setX + 2, setY + this.setFontSize + r * 4, this.setCubeSize, this.setCubeSize);
                     }
                     fill(0, 255, 0);
-                    for (int c = 0; c < set.greens; c++) {
-                        rect(posX + c * 3, posY + 8 + s * 12, 2, 2);
+                    for (int g = 0; g < set.greens; g++) {
+                        rect(setX + 6, setY + this.setFontSize + g * 4, this.setCubeSize, this.setCubeSize);
                     }
                     fill(100, 100, 255);
-                    for (int c = 0; c < set.greens; c++) {
-                        rect(posX + c * 3, posY + 11 + s * 12, 2, 2);
+                    for (int b = 0; b < set.blues; b++) {
+                        rect(setX + 10, setY + this.setFontSize + b * 4, this.setCubeSize, this.setCubeSize);
                     }
                 }
             }
@@ -201,14 +278,12 @@ class Day02 extends DayBase {
     }
 
     Day02Game parseGame(String data) {
-        Day02Set[] sets;
-
         int semicolonIndex = data.indexOf(":");
         int id = Integer.parseInt(data.substring(data.indexOf(" ") + 1, semicolonIndex));
         //println("Game: " + id);
 
         String[] setsPerGame = split(data.substring(semicolonIndex + 2), "; ");
-        sets = new Day02Set[setsPerGame.length];
+        Day02Set[] sets = new Day02Set[setsPerGame.length];
 
         String[] cubesPerColor;
         String[] cubeData;
@@ -246,6 +321,20 @@ class Day02 extends DayBase {
 
         return new Day02Game(id, sets);
     }
+
+    public boolean isGameValid(Day02Set maximums, Day02Set highest) {
+        if (highest.reds > maximums.reds) {
+            return false;
+        }
+        if (highest.greens > maximums.greens) {
+            return false;
+        }
+        if (highest.blues > maximums.blues) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 class Day02Set {
@@ -264,13 +353,16 @@ class Day02Game {
     public int id;
     public Day02Set[] sets;
 
-    public Day02Set minimums;
+    public boolean isValid;
+    public int power;
     public Day02Set highest;
 
     Day02Game(int id, Day02Set[] sets) {
         this.id = id;
         this.sets = sets;
 
+        this.isValid = true;
+        this.power = 0;
         this.highest = new Day02Set(0, 0, 0);
 
         for (Day02Set set : sets) {
@@ -284,20 +376,8 @@ class Day02Game {
                 highest.blues = set.blues;
             }
         }
-    }
 
-    public boolean isValid(Day02Set maximums) {
-        if (this.highest.reds > maximums.reds) {
-            return false;
-        }
-        if (this.highest.greens > maximums.greens) {
-            return false;
-        }
-        if (this.highest.blues > maximums.blues) {
-            return false;
-        }
-
-        return true;
+        //println("Game " + id + " highest cubes: R=" + this.highest.reds + ", G=" + this.highest.greens + ", B=" + this.highest.blues);
     }
 }
 
