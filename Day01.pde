@@ -1,13 +1,12 @@
 class Day01 extends DayBase {
-    Day01() {
-        super();
+    Day01(ViewRect viewRect) {
+        super(viewRect);
         this.isImplemented = true;
     }
 
-    void run() {
+    void onComplete() {
         this.part1();
         this.part2();
-        this.finish();
     }
 
     void part1() {

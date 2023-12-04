@@ -1,15 +1,11 @@
 import java.util.Map;
 
-class Day03 extends DayBase {
+class Day03 extends DayPages {
     private Day03ParsingData parsingData;
 
     private int numbersParsedPerStep;
     private boolean isCheckingGears;
 
-    private int maxWidth;
-    private int maxHeight;
-    private int middleX;
-    private int middleY;
     private int tableX;
     private int tableY;
     private int tableWidth;
@@ -21,31 +17,14 @@ class Day03 extends DayBase {
     private color colorGearValid = color(0, 255, 0, 127);
     private color colorGearInvalid = color(255, 50, 50, 127);
 
-    private int pageButtonWidth = 100;
-    private int pageButtonHeight = 30;
-    private int pageButtonFontSize = 20;
-    private ButtonColors buttonColors = new ButtonColors(color(191), color(255), color(63), color(0));
-    private int buttonMargin = 10;
-
-    private Button pageUpButton;
-    private Button pageDownButton;
-    private int buttonHoverIndex;
-    private Button hoveredButton;
-
     private int pageRowCount;
     private int pageRowStep;
-    private int pageCount;
-    private int pageIndex;
     private int pageFirstRow;
     private int pageLastRow;
     
-    Day03() {
-        super();
+    Day03(ViewRect viewRect) {
+        super(viewRect);
         this.isImplemented = true;
-        this.maxWidth = width - 20;
-        this.maxHeight = height - 60;
-        this.middleX = width / 2;
-        this.middleY = 60 + this.maxHeight / 2;
     }
 
     void part1() {
@@ -78,33 +57,23 @@ class Day03 extends DayBase {
         println("Part 2: Sum of gear ratios is " + sum);
     }
 
-    void init() {
-        this.pageUpButton = new Button(width - this.buttonMargin - this.pageButtonWidth, this.buttonMargin,
-            this.pageButtonWidth, this.pageButtonHeight, this.buttonColors, this.pageButtonFontSize, "UP", true);
-        this.pageDownButton = new Button(width - 2 * (this.buttonMargin + this.pageButtonWidth), this.buttonMargin,
-            this.pageButtonWidth, this.pageButtonHeight, this.buttonColors, this.pageButtonFontSize, "DOWN", true);
-
-        this.buttonHoverIndex = -1;
-        this.hoveredButton = null;
-    }
-
     void run() {
         this.parsingData = new Day03ParsingData(this.input.length);
 
         int rowLength = this.input[0].length();
         this.numbersParsedPerStep = ceil(rowLength / 15.0);
 
-        if (this.parsingData.lineCount * this.minCellSize > maxHeight) {
-            if (rowLength * this.minCellSize > maxWidth) {
+        if (this.parsingData.lineCount * this.minCellSize > this.viewRect.height) {
+            if (rowLength * this.minCellSize > this.viewRect.width) {
                 //println("Data can't be horizontally fit on a page, numbers parsed per step: " + this.numbersParsedPerStep);
                 this.cellWidth = this.minCellSize;
             } else {
                 //println("Data needs multiple pages, numbers parsed per step: " + this.numbersParsedPerStep);
-                this.cellWidth = floor(maxWidth / rowLength);
+                this.cellWidth = floor(this.viewRect.width / rowLength);
             
             }
             this.cellHeight = this.cellWidth;
-            this.pageRowCount = maxHeight / this.cellHeight;
+            this.pageRowCount = this.viewRect.height / this.cellHeight;
             this.pageRowStep = this.pageRowCount / 2;
             int overflowRows = this.parsingData.lineCount % this.pageRowCount;
             this.pageCount = 1 + (this.parsingData.lineCount - overflowRows) / this.pageRowStep;
@@ -113,7 +82,7 @@ class Day03 extends DayBase {
             this.pageCount = 1;
             this.pageRowCount = this.parsingData.lineCount;
             this.pageRowStep = this.pageRowCount;
-            this.cellHeight = maxHeight / this.parsingData.lineCount;
+            this.cellHeight = this.viewRect.height / this.parsingData.lineCount;
             this.cellWidth = this.cellHeight;
         }
 
@@ -121,82 +90,37 @@ class Day03 extends DayBase {
 
         this.tableHeight = this.cellHeight * this.pageRowCount;
         this.tableWidth = this.cellWidth * rowLength;
-        this.tableX = this.middleX - this.tableWidth / 2;
-        this.tableY = this.middleY - this.tableHeight / 2;
+        this.tableX = this.viewRect.middleX - this.tableWidth / 2;
+        this.tableY = this.viewRect.middleY - this.tableHeight / 2;
 
         println("Table pos: " + this.tableX + "," + this.tableY + ", table dims: " + this.tableWidth + "x" + this.tableHeight + ", cell dims: " + this.cellWidth + "x" + this.cellHeight);
 
-        this.pageIndex = 0;
         this.isParsingData = true;
     }
 
-    void update(int x, int y) {
-        this.buttonHoverIndex = -1;
-
-        if (this.pageUpButton.containsPoint(x, y)) {
-            this.buttonHoverIndex = 0;
-        } else if (this.pageDownButton.containsPoint(x, y)) {
-            this.buttonHoverIndex = 1;
-        }
-
-        if (this.buttonHoverIndex == 0) {
-            if (this.pageDownButton.isMouseOver) {
-                this.pageDownButton.onMouseOut();
-            }
-            if (!this.pageUpButton.isMouseOver) {
-                this.pageUpButton.onMouseOver();
-                this.hoveredButton = this.pageUpButton;
-            }
-        } else if (this.buttonHoverIndex == 1) {
-            if (this.pageUpButton.isMouseOver) {
-                this.pageUpButton.onMouseOut();
-            }
-            if (!this.pageDownButton.isMouseOver) {
-                this.pageDownButton.onMouseOver();
-                this.hoveredButton = this.pageDownButton;
-            }
-        } else if (this.hoveredButton != null) {
-            this.hoveredButton.onMouseOut();
-            this.hoveredButton = null;
-        }
-
-        if (!this.updateParsingInputData()) {
-            return;
+    boolean update(int x, int y) {
+        if (!super.update(x, y)) {
+            return false;
         }
 
         if (!this.updateValidatingGears()) {
-            return;
+            return false;
         }
         
-        this.part1();
-        this.part2();
-        this.finish();
+        return true;
     }
 
-    void onMousePressed() {
-        if (this.hoveredButton == null) {
-            println("No button hovered!");
-            return;
-        }
-
-        if (this.hoveredButton == this.pageUpButton) {
-            if (this.pageIndex > 0) {
-                println("Up a page!");
-                this.pageIndex--;
-            }
-        } else if (this.hoveredButton == this.pageDownButton) {
-            if (this.pageIndex < this.pageCount - 1) {
-                println("Down a page!");
-                this.pageIndex++;
-            }
-        }
+    void onComplete() {
+        this.part1();
+        this.part2();
     }
 
     void draw() {
-        this.pageUpButton.drawButton();
-        this.pageDownButton.drawButton();
+        super.draw();
+
         this.pageFirstRow = this.pageIndex * this.pageRowStep;
         this.pageLastRow = min(this.pageFirstRow + this.pageRowCount, this.parsingData.lineCount);
+
         this.drawNumbers();
         this.drawGears();
     }

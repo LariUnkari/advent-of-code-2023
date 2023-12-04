@@ -153,11 +153,15 @@ void drawDaySolution() {
 void update(int x, int y) {
     this.hoveredButtonIndex = -1;
 
-    if (this.isStartingDaySolution || this.isRunningDaySolution) {
+    if (this.isStartingDaySolution) {
         this.updateDaySolution(x, y);
-
-        if (!this.isRunningDaySolution) {
-            this.runDaySolution();
+        this.runDaySolution();
+    } else if (this.isRunningDaySolution) {
+        this.updateDaySolution(x, y);
+        if (this.selectedDaySolution.update(x, y)) {
+            if (!this.selectedDaySolution.isComplete) {
+                this.selectedDaySolution.finish();
+            }
         }
     } else if (this.isSelectingInput) {
         this.updateInputSelection(x, y);
@@ -208,8 +212,6 @@ void updateInputSelection(int x, int y) {
 }
 
 void updateDaySolution(int x, int y) {
-    this.selectedDaySolution.update(x, y);
-
     if (this.backButton.containsPoint(x, y)) {
         this.hoveredButtonIndex = 0;
     }
@@ -218,7 +220,7 @@ void updateDaySolution(int x, int y) {
         this.onNoButtonHovered();
     } else {
         this.onButtonHovered(this.backButton);
-    } 
+    }
 }
 
 void clearHoveredButton() {
@@ -368,14 +370,16 @@ void stopDaySolution() {
 }
 
 DayBase getDaySolution(int dayIndex) {
+    ViewRect viewRect = new ViewRect(10, 60, width - 20, height - 60);
+
     switch (dayIndex) {
-        case 0: return new Day01();
-        case 1: return new Day02();
-        case 2: return new Day03();
+        case 0: return new Day01(viewRect);
+        case 1: return new Day02(viewRect);
+        case 2: return new Day03(viewRect);
         default:
             println("Unsupported day index " + dayIndex + " provided!");
             break;
     }
 
-    return new DayBase();
+    return new DayBase(viewRect);
 }

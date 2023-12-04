@@ -1,14 +1,18 @@
 class DayBase {
     public boolean isImplemented;
 
+    public boolean isComplete;
     public boolean isRunning;
     public boolean isParsingData;
+    
+    public ViewRect viewRect;
 
-    String[] input;
+    protected String[] input;
 
-    DayBase() {
+    DayBase(ViewRect viewRect) {
         this.isImplemented = false;
         this.input = new String[0];
+        this.viewRect = viewRect;
     }
 
     void setInput(String[] input) {
@@ -34,12 +38,18 @@ class DayBase {
     }
     
     void finish() {
-        println("Solution completed");
         this.isRunning = false;
+        this.isComplete = true;
+        println("Solution completed");
+        this.onComplete();
     }
 
-    void update(int x, int y) {
+    void onComplete() {
+        
+    }
 
+    boolean update(int x, int y) {
+        return this.updateParsingInputData();
     }
 
     boolean updateParsingInputData() {
