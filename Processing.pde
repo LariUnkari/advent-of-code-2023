@@ -376,6 +376,7 @@ DayBase getDaySolution(int dayIndex) {
         case 0: return new Day01(viewRect);
         case 1: return new Day02(viewRect);
         case 2: return new Day03(viewRect);
+        case 3: return new Day04(viewRect);
         default:
             println("Unsupported day index " + dayIndex + " provided!");
             break;
