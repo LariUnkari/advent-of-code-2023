@@ -3,6 +3,7 @@ class Day02 extends DayPages {
 
     private int tableX;
     private int tableY;
+    private int tableWidth;
     
     private int gamesPerRow;
     private int gamesRowsPerPage;
@@ -55,16 +56,21 @@ class Day02 extends DayPages {
         println("Part 2: sum of game powers: " + sum);
     }
 
-    void run() {
+    void init() {
+        super.init();
+        
         this.gamesPerRow = this.viewRect.width / this.gameCardWidth;
         this.gamesRowsPerPage = this.viewRect.height / this.gameCardHeight;
         this.gamesPerPage = this.gamesPerRow * this.gamesRowsPerPage;
 
         this.pageCount = this.input.length / this.gamesPerPage + (this.input.length % this.gamesPerPage > 0 ? 1 : 0);
 
-        this.tableX = this.viewRect.x + (this.viewRect.width - this.gamesPerRow * this.gameCardWidth) / 2;
+        this.tableWidth = this.gamesPerRow * this.gameCardWidth;
+        this.tableX = this.viewRect.middleX - this.tableWidth / 2;
         this.tableY = this.viewRect.y;
+    }
 
+    void run() {
         this.parsingData = new Day02ParsingData(this.input.length);
         this.isParsingData = true;
     }

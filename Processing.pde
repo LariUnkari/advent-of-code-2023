@@ -325,7 +325,6 @@ void selectInput(int index) {
 
     if (this.selectedInput.length > 0) {
         this.runDayButton.isEnabled = true;
-        this.selectedDaySolution.setInput(this.selectedInput);
     }
 }
 
@@ -350,9 +349,11 @@ String[] getClipboardInput() {
 }
 
 void initDaySolution() {
+    println("Initializing Day " + nf(this.selectedDayIndex + 1, 2));
     this.clearHoveredButton();
     this.isSelectingInput = false;
     this.isStartingDaySolution = true;
+    this.selectedDaySolution.setInput(this.selectedInput);
     this.selectedDaySolution.init();
 }
 
@@ -364,6 +365,7 @@ void runDaySolution() {
 }
 
 void stopDaySolution() {
+    println("Stopping Day " + nf(this.selectedDayIndex + 1, 2));
     this.selectedDaySolution.stop();
     this.isRunningDaySolution = false;
     this.isSelectingInput = true;

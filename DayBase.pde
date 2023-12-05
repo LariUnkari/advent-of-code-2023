@@ -20,7 +20,10 @@ class DayBase {
     }
 
     void init() {
-
+        println("Initializing solution view");
+        this.isRunning = false;
+        this.isComplete = false;
+        this.isParsingData = false;
     }
 
     void start() {
