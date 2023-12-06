@@ -1,5 +1,8 @@
+import java.util.Map;
+
 class Day04 extends DayBase {
     private Day04ParsingData parsingData;
+    private Day04Visual visualization;
 
     private boolean isCheckingMatches;
     private boolean isCheckingWins;
@@ -17,9 +20,7 @@ class Day04 extends DayBase {
         Day04Card card;
         for (int i = 0; i < this.parsingData.cards.length; i++) {
             card = this.parsingData.cards[i];
-            if (card.winCount > 0) {
-                sum += round(pow(2, card.winCount - 1));
-            }
+            sum += card.points;
         }
 
         println("Part 1: sum of card points is " + sum);
@@ -75,7 +76,7 @@ class Day04 extends DayBase {
 
         Day04Card card = this.parsingData.cards[this.parsingData.cardIndex];
         card.checkMatches();
-        println("Card " + card.id + " winCount: " + card.winCount);
+        println("Card " + card.id + " winCount: " + card.winCount + ", points: " + card.points);
 
         this.parsingData.cardIndex++;
     }
@@ -104,16 +105,21 @@ class Day04 extends DayBase {
     }
 
     void stepParsingInputData() {
-        if (this.parsingData.inputLineIndex >= this.parsingData.inputLineCount) {
-            println("Finished parsing input data");
-            this.parsingData.isParsingData = false;
-            this.isCheckingMatches = true;
-            //this.pageIndex = 0;
-            return;
+        int cardsParsed = 0;
+        while (cardsParsed < 10) {
+            if (this.parsingData.inputLineIndex >= this.parsingData.inputLineCount) {
+                println("Finished parsing input data");
+                this.parsingData.isParsingData = false;
+                this.isCheckingMatches = true;
+                //this.pageIndex = 0;
+                return;
+            }
+            
+            this.parsingData.cards[this.parsingData.inputLineIndex] = this.parseCard(this.parsingData.input[this.parsingData.inputLineIndex]);
+            this.parsingData.cardCount++;
+            this.parsingData.inputLineIndex++;
+            cardsParsed++;
         }
-
-        this.parsingData.cards[this.parsingData.inputLineIndex] = this.parseCard(this.parsingData.input[this.parsingData.inputLineIndex]);
-        this.parsingData.inputLineIndex++;
     }
 
     Day04Card parseCard(String data) {
@@ -158,21 +164,23 @@ class Day04 extends DayBase {
     }
 
     void createVisualization(ViewRect viewRect) {
-        // TODO: Implement visualization class
+        this.visualization = new Day04Visual(viewRect, this.parsingData);
     }
 
     DayVisualBase getVisualization() {
-        return null;
+        return this.visualization;
     }
 }
 
 class Day04ParsingData extends ParsingData {
     public Day04Card[] cards;
+    public int cardCount;
     public int cardIndex;
 
     Day04ParsingData(String[] input) {
         super(input);
         this.cards = new Day04Card[this.inputLineCount];
+        this.cardCount = 0;
         this.cardIndex = 0;
     }
 }
@@ -182,36 +190,37 @@ class Day04Card {
     public int[] setNumbers;
     public int[] winNumbers;
 
-    public IntDict matches;
+    public HashMap<Integer, Integer> matches;
     public int winCount;
+    public int points;
     public int copies;
 
     Day04Card(int id, int[] setNumbers, int[] winNumbers) {
         this.id = id;
         this.setNumbers = setNumbers;
         this.winNumbers = winNumbers;
-        this.matches = new IntDict();
+        this.matches = new HashMap<Integer, Integer>();
         this.winCount = 0;
+        this.points = 0;
         this.copies = 1;
     }
 
     void checkMatches() {
-        this.winCount = 0;
-
-        String key;
+        int key;
 
         for (int i = 0; i < this.winNumbers.length; i++) {
-            key = nf(this.winNumbers[i]);
-            this.matches.set(key, 0);
+            this.matches.put(this.winNumbers[i], 0);
         }
 
         for (int j = 0; j < this.setNumbers.length; j++) {
-            key = nf(this.setNumbers[j]);
+            key = this.setNumbers[j];
 
-            if (this.matches.hasKey(key)) {
-                this.matches.set(key, 1);
+            if (this.matches.containsKey(key)) {
+                this.matches.put(key, 1);
                 this.winCount++;
             }
         }
+
+        this.points = round(pow(2, this.winCount - 1));
     }
 }
