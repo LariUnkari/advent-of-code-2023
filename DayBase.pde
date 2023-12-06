@@ -1,30 +1,27 @@
-class DayBase {
+abstract class DayBase {
     public boolean isImplemented;
 
     public boolean isComplete;
     public boolean isRunning;
-    public boolean isParsingData;
-    
-    public ViewRect viewRect;
 
-    protected String[] input;
-
-    DayBase(ViewRect viewRect) {
+    DayBase() {
         this.isImplemented = false;
-        this.input = new String[0];
-        this.viewRect = viewRect;
     }
 
-    void setInput(String[] input) {
-        this.input = input;
-    }
-
-    void init() {
+    void init(ViewRect viewRect, String[] input) {
         println("Initializing solution view");
+
         this.isRunning = false;
         this.isComplete = false;
-        this.isParsingData = false;
+        
+        this.createParsingData(input);
+        this.createVisualization(viewRect);
     }
+
+    abstract void createParsingData(String[] input);
+    abstract ParsingData getParsingData();
+    abstract void createVisualization(ViewRect viewRect);
+    abstract DayVisualBase getVisualization();
 
     void start() {
         this.isRunning = true;
@@ -43,13 +40,11 @@ class DayBase {
     void finish() {
         this.isRunning = false;
         this.isComplete = true;
-        println("Solution completed");
         this.onComplete();
+        println("Solution completed");
     }
 
-    void onComplete() {
-        
-    }
+    abstract void onComplete();
 
     boolean update(int x, int y) {
         return this.updateParsingInputData();
@@ -60,7 +55,7 @@ class DayBase {
             return false;
         }
 
-        if (this.isParsingData) {
+        if (this.getParsingData().isParsingData) {
             this.stepParsingInputData();
             return false;
         }
@@ -68,10 +63,7 @@ class DayBase {
         return true;
     }
 
-    void stepParsingInputData() {
-        println("No parsing logic implemented!");
-        this.isParsingData = false;
-    }
+    abstract void stepParsingInputData();
 
     void onMousePressed() {
         

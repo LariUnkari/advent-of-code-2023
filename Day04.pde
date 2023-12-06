@@ -4,21 +4,11 @@ class Day04 extends DayBase {
     private boolean isCheckingMatches;
     private boolean isCheckingWins;
 
-    Day04(ViewRect viewRect) {
-        super(viewRect);
+    Day04() {
+        super();
         this.isImplemented = true;
         this.isCheckingMatches = false;
         this.isCheckingWins = false;
-    }
-
-    void run() {
-        this.parsingData = new Day04ParsingData(this.input.length);
-        this.isParsingData = true;
-    }
-
-    void onComplete() {
-        this.part1();
-        this.part2();
     }
 
     void part1() {
@@ -45,6 +35,15 @@ class Day04 extends DayBase {
         }
 
         println("Part 2: sum of cards and their copies is " + sum);
+    }
+
+    void run() {
+        this.parsingData.isParsingData = true;
+    }
+
+    void onComplete() {
+        this.part1();
+        this.part2();
     }
 
     boolean update(int x, int y) {
@@ -105,16 +104,16 @@ class Day04 extends DayBase {
     }
 
     void stepParsingInputData() {
-        if (this.parsingData.rowIndex >= this.parsingData.lineCount) {
+        if (this.parsingData.inputLineIndex >= this.parsingData.inputLineCount) {
             println("Finished parsing input data");
-            this.isParsingData = false;
+            this.parsingData.isParsingData = false;
             this.isCheckingMatches = true;
             //this.pageIndex = 0;
             return;
         }
 
-        this.parsingData.cards[this.parsingData.rowIndex] = this.parseCard(this.input[this.parsingData.rowIndex]);
-        this.parsingData.rowIndex++;
+        this.parsingData.cards[this.parsingData.inputLineIndex] = this.parseCard(this.parsingData.input[this.parsingData.inputLineIndex]);
+        this.parsingData.inputLineIndex++;
     }
 
     Day04Card parseCard(String data) {
@@ -149,18 +148,31 @@ class Day04 extends DayBase {
         
         return numbers;
     }
+
+    void createParsingData(String[] input) {
+        this.parsingData = new Day04ParsingData(input);
+    }
+
+    ParsingData getParsingData() {
+        return this.parsingData;
+    }
+
+    void createVisualization(ViewRect viewRect) {
+        // TODO: Implement visualization class
+    }
+
+    DayVisualBase getVisualization() {
+        return null;
+    }
 }
 
-class Day04ParsingData {
-    public int lineCount;
-    public int rowIndex;
+class Day04ParsingData extends ParsingData {
     public Day04Card[] cards;
     public int cardIndex;
 
-    Day04ParsingData(int lineCount) {
-        this.lineCount = lineCount;
-        this.rowIndex = 0;
-        this.cards = new Day04Card[lineCount];
+    Day04ParsingData(String[] input) {
+        super(input);
+        this.cards = new Day04Card[this.inputLineCount];
         this.cardIndex = 0;
     }
 }

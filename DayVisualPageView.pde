@@ -1,4 +1,4 @@
-abstract class DayPages extends DayBase {
+abstract class DayVisualPageView extends DayVisualBase {
     protected int buttonHoverIndex;
     protected Button hoveredButton;
 
@@ -20,12 +20,8 @@ abstract class DayPages extends DayBase {
     protected int pageButtonFontSize = 20;
     protected ButtonColors buttonColors = new ButtonColors(color(191), color(255), color(63), color(0));
 
-    public DayPages(ViewRect viewRect) {
+    DayVisualPageView(ViewRect viewRect) {
         super(viewRect);
-    }
-
-    void init() {
-        super.init();
         println("Initializing page system");
 
         this.pageUpButton = new Button(this.viewRect.x + this.viewRect.width - this.pageButtonWidth, this.pageButtonY,
@@ -40,42 +36,17 @@ abstract class DayPages extends DayBase {
         this.pageCount = 0;
     }
 
-    boolean update(int x, int y) {
-        this.updateButtons(x, y);
-        return super.update(x, y);
-    }
-
-    void updateButtons(int x, int y) {
-        this.buttonHoverIndex = -1;
-
-        if (this.pageUpButton.containsPoint(x, y)) {
-            this.buttonHoverIndex = 0;
-        } else if (this.pageDownButton.containsPoint(x, y)) {
-            this.buttonHoverIndex = 1;
-        }
-
-        if (this.buttonHoverIndex == -1) {
-            if (this.hoveredButton != null) {
-                this.hoveredButton.onMouseOut();
-                this.hoveredButton = null;
-            }
-        } else if (this.buttonHoverIndex == 0) {
-            if (this.pageDownButton.isMouseOver) {
-                this.pageDownButton.onMouseOut();
-            }
-            if (!this.pageUpButton.isMouseOver) {
-                this.pageUpButton.onMouseOver();
-                this.hoveredButton = this.pageUpButton;
-            }
-        } else if (this.buttonHoverIndex == 1) {
-            if (this.pageUpButton.isMouseOver) {
-                this.pageUpButton.onMouseOut();
-            }
-            if (!this.pageDownButton.isMouseOver) {
-                this.pageDownButton.onMouseOver();
-                this.hoveredButton = this.pageDownButton;
-            }
-        }
+    void draw() {
+        this.pageUpButton.drawButton();
+        this.pageDownButton.drawButton();
+        int posX = this.pageUpButton.x - this.pageButtonMargin - this.pageLabelWidth / 2;
+        fill(255);
+        noStroke();
+        textAlign(CENTER, TOP);
+        textSize(this.pageLabelTitleFontSize);
+        text("PAGE", posX, this.pageLabelY);
+        textSize(this.pageLabelNumberFontSize);
+        text(this.pageIndex, posX, this.pageLabelY + pageLabelTitleFontSize);
     }
 
     void onMousePressed() {
@@ -101,17 +72,42 @@ abstract class DayPages extends DayBase {
         }
     }
 
-    void draw() {
-        super.draw();
-        this.pageUpButton.drawButton();
-        this.pageDownButton.drawButton();
-        int posX = this.pageUpButton.x - this.pageButtonMargin - this.pageLabelWidth / 2;
-        fill(255);
-        noStroke();
-        textAlign(CENTER, TOP);
-        textSize(this.pageLabelTitleFontSize);
-        text("PAGE", posX, this.pageLabelY);
-        textSize(this.pageLabelNumberFontSize);
-        text(this.pageIndex, posX, this.pageLabelY + pageLabelTitleFontSize);
+    void update(int x, int y) {
+        this.updateButtons(x, y);
+    }
+
+    void updateButtons(int x, int y) {
+        this.buttonHoverIndex = -1;
+
+        if (this.pageUpButton.containsPoint(x, y)) {
+            this.buttonHoverIndex = 0;
+        } else if (this.pageDownButton.containsPoint(x, y)) {
+            this.buttonHoverIndex = 1;
+        }
+
+        if (this.buttonHoverIndex == -1) {
+            if (this.hoveredButton != null) {
+                this.hoveredButton.onMouseOut();
+                this.hoveredButton = null;
+            }
+        } else if (this.buttonHoverIndex == 0) {
+            if (this.pageDownButton.isMouseOver) {
+                this.pageDownButton.onMouseOut();
+            }
+            if (!this.pageUpButton.isMouseOver) {
+                this.pageUpButton.onMouseOver();
+                println("Mouse over up button");
+                this.hoveredButton = this.pageUpButton;
+            }
+        } else if (this.buttonHoverIndex == 1) {
+            if (this.pageUpButton.isMouseOver) {
+                this.pageUpButton.onMouseOut();
+            }
+            if (!this.pageDownButton.isMouseOver) {
+                this.pageDownButton.onMouseOver();
+                println("Mouse over down button");
+                this.hoveredButton = this.pageDownButton;
+            }
+        }
     }
 }

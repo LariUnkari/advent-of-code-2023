@@ -1,29 +1,14 @@
 import java.util.Map;
 
-class Day03 extends DayPages {
+class Day03 extends DayBase {
     private Day03ParsingData parsingData;
+    private Day03Visual visualization;
 
     private int numbersParsedPerStep;
     private boolean isCheckingGears;
-
-    private int tableX;
-    private int tableY;
-    private int tableWidth;
-    private int tableHeight;
-    private int cellWidth;
-    private int cellHeight;
-
-    private int minCellSize = 8;
-    private color colorGearValid = color(0, 255, 0, 127);
-    private color colorGearInvalid = color(255, 50, 50, 127);
-
-    private int pageRowCount;
-    private int pageRowStep;
-    private int pageFirstRow;
-    private int pageLastRow;
     
-    Day03(ViewRect viewRect) {
-        super(viewRect);
+    Day03() {
+        super();
         this.isImplemented = true;
     }
 
@@ -58,44 +43,8 @@ class Day03 extends DayPages {
     }
 
     void run() {
-        this.parsingData = new Day03ParsingData(this.input.length);
-
-        int rowLength = this.input[0].length();
-        this.numbersParsedPerStep = ceil(rowLength / 15.0);
-
-        if (this.parsingData.lineCount * this.minCellSize > this.viewRect.height) {
-            if (rowLength * this.minCellSize > this.viewRect.width) {
-                //println("Data can't be horizontally fit on a page, numbers parsed per step: " + this.numbersParsedPerStep);
-                this.cellWidth = this.minCellSize;
-            } else {
-                //println("Data needs multiple pages, numbers parsed per step: " + this.numbersParsedPerStep);
-                this.cellWidth = floor(this.viewRect.width / rowLength);
-            
-            }
-            this.cellHeight = this.cellWidth;
-            this.pageRowCount = this.viewRect.height / this.cellHeight;
-            this.pageRowStep = this.pageRowCount / 2;
-            int overflowRows = this.parsingData.lineCount % this.pageRowCount;
-            this.pageCount = 1 + (this.parsingData.lineCount - overflowRows) / this.pageRowStep;
-        } else {
-            //println("Data fits well on one page, numbers parsed per step: " + this.numbersParsedPerStep);
-            this.pageCount = 1;
-            this.pageRowCount = this.parsingData.lineCount;
-            this.pageRowStep = this.pageRowCount;
-            this.cellHeight = this.viewRect.height / this.parsingData.lineCount;
-            this.cellWidth = this.cellHeight;
-        }
-
-        println("Page count " + this.pageCount + ", row step " + this.pageRowStep + ", rows per page " + this.pageRowCount);
-
-        this.tableHeight = this.cellHeight * this.pageRowCount;
-        this.tableWidth = this.cellWidth * rowLength;
-        this.tableX = this.viewRect.middleX - this.tableWidth / 2;
-        this.tableY = this.viewRect.middleY - this.tableHeight / 2;
-
-        println("Table pos: " + this.tableX + "," + this.tableY + ", table dims: " + this.tableWidth + "x" + this.tableHeight + ", cell dims: " + this.cellWidth + "x" + this.cellHeight);
-
-        this.isParsingData = true;
+        this.numbersParsedPerStep = ceil(this.parsingData.rowLength / 15.0);
+        this.parsingData.isParsingData = true;
     }
 
     boolean update(int x, int y) {
@@ -115,102 +64,36 @@ class Day03 extends DayPages {
         this.part2();
     }
 
-    void draw() {
-        super.draw();
-
-        this.pageFirstRow = this.pageIndex * this.pageRowStep;
-        this.pageLastRow = min(this.pageFirstRow + this.pageRowCount, this.parsingData.lineCount);
-
-        this.drawNumbers();
-        this.drawGears();
-    }
-
-    void drawNumbers() {
-        int x, y;
-        String line;
-
-        for (int r = this.pageFirstRow; r < this.pageLastRow; r++) {
-            y = this.tableY + (r - this.pageFirstRow) * this.cellHeight;
-            line = this.input[r];
-
-            for (int c = 0; c < line.length(); c++) {
-                x = this.tableX + c * this.cellWidth + this.cellWidth / 2;
-                
-                if (this.parsingData.isNumberAt(c, r)) {
-                    fill(0, 255, 0);
-                } else if (r == this.parsingData.rowIndex) {
-                    fill(255);
-                } else {
-                    fill(191);
-                }
-
-                textSize(cellHeight);
-                text(line.charAt(c), x, y);
-            }
-        }
-    }
-
-    void drawGears() {
-        int x, y, w, h, asr, aer;
-        Day03Gear gear;
-
-        for (int i = 0; i < this.parsingData.gearIndex; i++) {
-            gear = this.parsingData.gears.get(i);
-
-            if (gear.row < this.pageFirstRow || gear.row > this.pageLastRow) {
-                continue;
-            }
-
-            asr = gear.adjStartRow - this.pageFirstRow;
-            aer = gear.adjEndRow - this.pageFirstRow;
-
-            x = this.tableX + gear.adjStartColumn * this.cellWidth;
-            y = this.tableY + asr * this.cellHeight - this.cellHeight / 2;
-            w = this.tableX + gear.adjEndColumn * this.cellWidth + this.cellWidth - x;
-            h = this.tableY + aer * this.cellHeight + this.cellHeight / 2 - y;
-
-            fill(gear.isValid ? this.colorGearValid : this.colorGearInvalid);
-            noStroke();
-            rect(x, y, w, h);
-        }
-    }
-
     void stepParsingInputData() {
-        if (this.parsingData.rowIndex >= this.parsingData.lineCount) {
-            this.isParsingData = false;
-            this.pageIndex = 0;
+        if (this.parsingData.inputLineIndex >= this.parsingData.inputLineCount) {
+            this.parsingData.isParsingData = false;
+            this.parsingData.isCheckingGears = true;
             return;
         }
 
         if (this.parsingData.columnIndex == -1) {
             this.parsingData.columnIndex = 0;
-            this.parsingData.rowLength = this.input[this.parsingData.rowIndex].length();
-            this.parsingData.adjStartRow = max(this.parsingData.rowIndex - 1, 0);
-            this.parsingData.adjEndRow = min(this.parsingData.lineCount - 1, this.parsingData.rowIndex + 1);
+            this.parsingData.adjStartRow = max(this.parsingData.inputLineIndex - 1, 0);
+            this.parsingData.adjEndRow = min(this.parsingData.inputLineCount - 1, this.parsingData.inputLineIndex + 1);
         }
 
         while (this.parsingData.numbersParsedInStep < this.numbersParsedPerStep) {
-            this.parsingData.columnIndex = this.parseLine(this.parsingData.rowIndex, this.parsingData.rowLength, this.parsingData.columnIndex,
+            this.parsingData.columnIndex = this.parseLine(this.parsingData.inputLineIndex, this.parsingData.rowLength, this.parsingData.columnIndex,
                 this.parsingData.adjStartColumn, this.parsingData.adjStartRow, this.parsingData.adjEndColumn, this.parsingData.adjEndRow);
 
             this.parsingData.numbersParsedInStep++;
 
             if (this.parsingData.columnIndex == -1) {
-                this.parsingData.rowIndex++;
+                this.parsingData.inputLineIndex++;
                 break;
             }
-        }
-        
-        if (this.pageIndex + 1 < this.pageCount &&
-            this.parsingData.rowIndex - this.pageRowStep / 2 > this.pageRowStep * (1 + this.pageIndex)) {
-            this.pageIndex++;
         }
 
         this.parsingData.numbersParsedInStep = 0;
     }
 
     int parseLine(int rowIndex, int rowLength, int charColumn, int adjStartColumn, int adjStartRow, int adjEndColumn, int adjEndRow) {
-        String line = this.input[rowIndex];
+        String line = this.parsingData.input[rowIndex];
         
         int numStartColumn = -1;
         int numEndColumn = -1;
@@ -277,11 +160,11 @@ class Day03 extends DayPages {
         for (int r = payload.startRow; r <= payload.endRow; r++) {
             for (int c = payload.startColumn; c <= payload.endColumn; c++) {
                 if (r == payload.numberRow && c >= payload.numberStartColumn && c <= payload.numberEndColumn) {
-                    //println("Skip number digit '" + this.input[r].charAt(c) + "' at row " + r + " column " + c);
+                    //println("Skip number digit '" + this.parsingData.input[r].charAt(c) + "' at row " + r + " column " + c);
                     continue; // Skip the number itself
                 }
 
-                character = this.input[r].charAt(c);
+                character = this.parsingData.input[r].charAt(c);
                 
                 if (this.isCharGear(character)) {
                     gearID = this.parsingData.getPositionID(c, r);
@@ -290,7 +173,7 @@ class Day03 extends DayPages {
                     if (payload.gear == null) {
                         //println("New gear '" + gearID + "' found attached on row " + r + " column " + c);
                         payload.gear = new Day03Gear(gearID, c, r, max(0, c - 1), max(0, r - 1),
-                            min(c + 1, payload.rowLength - 1), min(r + 1, this.parsingData.lineCount - 1));
+                            min(c + 1, payload.rowLength - 1), min(r + 1, this.parsingData.inputLineCount - 1));
                         this.parsingData.AddGear(payload.gear);
                     } else {
                         //println("Gear '" + gearID + "' attached on row " + r + " column " + c);
@@ -317,16 +200,11 @@ class Day03 extends DayPages {
             gear = this.parsingData.gears.get(this.parsingData.gearIndex);
             gear.isValid = gear.numbers.size() == 2;
 
-            this.parsingData.gearIndex++;    
-        
-            if (this.pageIndex + 1 < this.pageCount &&
-                gear.row - this.pageRowStep / 2 > this.pageRowStep * (1 + this.pageIndex)) {
-                this.pageIndex++;
-            }
-
+            this.parsingData.gearIndex++;
             return false;
         }
 
+        this.parsingData.isCheckingGears = false;
         return true;
     }
 
@@ -355,11 +233,26 @@ class Day03 extends DayPages {
 
         return false;
     }
+
+    void createParsingData(String[] input) {
+        this.parsingData = new Day03ParsingData(input);
+    }
+
+    ParsingData getParsingData() {
+        return this.parsingData;
+    }
+
+    void createVisualization(ViewRect viewRect) {
+        this.visualization = new Day03Visual(viewRect, this.parsingData);
+    }
+
+    DayVisualBase getVisualization() {
+        return this.visualization;
+    }
 }
 
-class Day03ParsingData {
-    public int lineCount;
-    public int rowIndex;
+class Day03ParsingData extends ParsingData {
+    public boolean isCheckingGears;
     public int rowLength;
     public int columnIndex;
     public int numbersParsedInStep;
@@ -376,9 +269,10 @@ class Day03ParsingData {
     public ArrayList<Day03Gear> gears;
     public HashMap<String, Day03Gear> gearMap;
 
-    Day03ParsingData(int inputLines) {
-        this.lineCount = inputLines;
-        this.rowIndex = 0;
+    Day03ParsingData(String[] input) {
+        super(input);
+        this.isCheckingGears = false;
+        this.rowLength = input[0].length();
         this.columnIndex = -1;
         this.numbersParsedInStep = 0;
         this.gearIndex = 0;
@@ -392,7 +286,7 @@ class Day03ParsingData {
         this.numbers.add(number);
         
         for (int c = number.startColumn; c <= number.endColumn; c++) {
-            this.numberMap.put(this.getPositionID(c, this.rowIndex), number);
+            this.numberMap.put(this.getPositionID(c, this.inputLineIndex), number);
         }
     }
 

@@ -83,7 +83,7 @@ void settings() {
             this.buttonY = this.middleY + (y - 2) * (buttonMargin + this.dayButtonHeight) - this.dayButtonHeight / 2;
             
             this.dayButtons[i] = new Button(this.buttonX, this.buttonY, this.dayButtonWidth, this.dayButtonHeight,
-                buttonColors, this.dayButtonFontSize, nf(i + 1, 2), day.isImplemented);
+                buttonColors, this.dayButtonFontSize, nf(i + 1, 2), day != null ? day.isImplemented : false);
         }
     }
 
@@ -148,21 +148,20 @@ void drawInputSelection() {
 void drawDaySolution() {
     this.backButton.drawButton();
     this.selectedDaySolution.draw();
+    if (this.selectedDaySolution.getVisualization() != null) {
+        this.selectedDaySolution.getVisualization().draw();
+    }
 }
 
 void update(int x, int y) {
     this.hoveredButtonIndex = -1;
 
     if (this.isStartingDaySolution) {
-        this.updateDaySolution(x, y);
+        this.updateDaySolutionView(x, y);
         this.runDaySolution();
     } else if (this.isRunningDaySolution) {
-        this.updateDaySolution(x, y);
-        if (this.selectedDaySolution.update(x, y)) {
-            if (!this.selectedDaySolution.isComplete) {
-                this.selectedDaySolution.finish();
-            }
-        }
+        this.updateDaySolutionView(x, y);
+        this.updateDaySolutionLogic(x, y);
     } else if (this.isSelectingInput) {
         this.updateInputSelection(x, y);
     } else {
@@ -211,7 +210,7 @@ void updateInputSelection(int x, int y) {
     }
 }
 
-void updateDaySolution(int x, int y) {
+void updateDaySolutionView(int x, int y) {
     if (this.backButton.containsPoint(x, y)) {
         this.hoveredButtonIndex = 0;
     }
@@ -220,6 +219,18 @@ void updateDaySolution(int x, int y) {
         this.onNoButtonHovered();
     } else {
         this.onButtonHovered(this.backButton);
+    }
+
+    if (this.selectedDaySolution.getVisualization() != null) {
+        this.selectedDaySolution.getVisualization().update(x, y);
+    }
+}
+
+void updateDaySolutionLogic(int x, int y) {
+    if (this.selectedDaySolution.update(x, y)) {
+        if (!this.selectedDaySolution.isComplete) {
+            this.selectedDaySolution.finish();
+        }
     }
 }
 
@@ -256,6 +267,9 @@ void mousePressed() {
 
     if (this.selectedDaySolution != null) {
         this.selectedDaySolution.onMousePressed();
+        if (this.selectedDaySolution.getVisualization() != null) {
+            this.selectedDaySolution.getVisualization().onMousePressed();
+        }
     }
 
     if (this.hoveredButton != null) {
@@ -353,8 +367,7 @@ void initDaySolution() {
     this.clearHoveredButton();
     this.isSelectingInput = false;
     this.isStartingDaySolution = true;
-    this.selectedDaySolution.setInput(this.selectedInput);
-    this.selectedDaySolution.init();
+    this.selectedDaySolution.init(new ViewRect(10, 60, width - 20, height - 60), this.selectedInput);
 }
 
 void runDaySolution() {
@@ -372,18 +385,16 @@ void stopDaySolution() {
 }
 
 DayBase getDaySolution(int dayIndex) {
-    ViewRect viewRect = new ViewRect(10, 60, width - 20, height - 60);
-
     switch (dayIndex) {
-        case 0: return new Day01(viewRect);
-        case 1: return new Day02(viewRect);
-        case 2: return new Day03(viewRect);
-        case 3: return new Day04(viewRect);
-        case 4: return new Day05(viewRect);
+        case 0: return new Day01();
+        case 1: return new Day02();
+        case 2: return new Day03();
+        case 3: return new Day04();
+        case 4: return new Day05();
         default:
             println("Unsupported day index " + dayIndex + " provided!");
             break;
     }
 
-    return new DayBase(viewRect);
+    return null;
 }

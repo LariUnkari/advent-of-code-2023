@@ -12,20 +12,9 @@ class Day05 extends DayBase {
 
     private Day05ParsingData parsingData;
 
-    Day05(ViewRect viewRect) {
-        super(viewRect);
+    Day05() {
+        super();
         this.isImplemented = true;
-    }
-
-    void run() {
-        this.parsingData = new Day05ParsingData(this.input.length);
-        this.isParsingData = true;
-    }
-
-    long resolveValue(long value, Day05Map map) {
-        long newValue = map.resolveNumber(value);
-        //println("Map '" + map.id + "' resolved " + value + " to " + newValue);
-        return newValue;
     }
 
     void part1() {
@@ -55,6 +44,29 @@ class Day05 extends DayBase {
         println("Part 2: Found " + total + " seeds of " + typeCount + " types");
         long lowest = this.findLowestNumberLocationSets(sets);
         println("Part 2: lowest location number is " + lowest);
+    }
+
+    void run() {
+        this.parsingData.isParsingData = true;
+    }
+
+    boolean update(int x, int y) {
+        if (!super.update(x, y)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    void onComplete() {
+        this.part1();
+        this.part2();
+    }
+
+    long resolveValue(long value, Day05Map map) {
+        long newValue = map.resolveNumber(value);
+        //println("Map '" + map.id + "' resolved " + value + " to " + newValue);
+        return newValue;
     }
 
     long findLowestNumberLocationList(ArrayList<Long> listSeeds) {
@@ -108,36 +120,22 @@ class Day05 extends DayBase {
         return loca;
     }
 
-    void onComplete() {
-        this.part1();
-        this.part2();
-    }
-
-    boolean update(int x, int y) {
-        if (!super.update(x, y)) {
-            return false;
-        }
-
-        return true;
-    }
-
     void stepParsingInputData() {
-
-        if (this.parsingData.rowIndex < this.parsingData.lineCount) {
-            String data = this.input[this.parsingData.rowIndex];
+        if (this.parsingData.inputLineIndex < this.parsingData.inputLineCount) {
+            String data = this.parsingData.input[this.parsingData.inputLineIndex];
 
             if (data.length() == 0) {
-                this.parsingData.rowIndex++;
-                this.parsingData.setState(this.parsingData.stateIndex + 1, this.input[this.parsingData.rowIndex]);
+                this.parsingData.inputLineIndex++;
+                this.parsingData.setState(this.parsingData.stateIndex + 1, this.parsingData.input[this.parsingData.inputLineIndex]);
             } else {
                 this.parseLine(data, this.parsingData.stateIndex);
             }
 
-            this.parsingData.rowIndex++;
+            this.parsingData.inputLineIndex++;
             return;
         }
 
-        this.isParsingData = false;
+        this.parsingData.isParsingData = false;
         //this.pageIndex = 0;
         println("Finished parsing input data");
     }
@@ -186,20 +184,33 @@ class Day05 extends DayBase {
         //println("Parsed map '" + map.id + "' numbers: destination " + numbers[0] + ", source " + numbers[1] + ", range: " + numbers[2]);
         map.addSet(numbers[0], numbers[1], numbers[2]);
     }
+
+    void createParsingData(String[] input) {
+        this.parsingData = new Day05ParsingData(input);
+    }
+
+    ParsingData getParsingData() {
+        return this.parsingData;
+    }
+
+    void createVisualization(ViewRect viewRect) {
+        // TODO: Implement visualization class
+    }
+
+    DayVisualBase getVisualization() {
+        return null;
+    }
 }
 
-class Day05ParsingData {
-    public int lineCount;
-    public int rowIndex;
+class Day05ParsingData extends ParsingData {
     public int stateIndex;
     public String stateName;
 
     public ArrayList<Long> seeds;
     private Day05Map[] mapsPerState;
 
-    Day05ParsingData(int lineCount) {
-        this.lineCount = lineCount;
-        this.rowIndex = 0;
+    Day05ParsingData(String[] input) {
+        super(input);
         this.stateIndex = 0;
         this.stateName = "";
         this.seeds = new ArrayList<Long>();

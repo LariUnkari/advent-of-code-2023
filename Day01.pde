@@ -1,12 +1,9 @@
 class Day01 extends DayBase {
-    Day01(ViewRect viewRect) {
-        super(viewRect);
-        this.isImplemented = true;
-    }
+    private Day01ParsingData parsingData;
 
-    void onComplete() {
-        this.part1();
-        this.part2();
+    Day01() {
+        super();
+        this.isImplemented = true;
     }
 
     void part1() {
@@ -32,6 +29,19 @@ class Day01 extends DayBase {
         }
 
         println("Part 2: values sum = " + sum);
+    }
+
+    void run() {
+
+    }
+
+    void onComplete() {
+        this.part1();
+        this.part2();
+    }
+
+    void stepParsingInputData() {
+
     }
 
     String[] buildArrayReversed(String[] digits) {
@@ -74,13 +84,13 @@ class Day01 extends DayBase {
     }
 
     String[][] getValues(String regexpFirst, String regexpLast) {
-        String[][] parsedInputs = new String[this.input.length][2];
+        String[][] parsedInputs = new String[this.parsingData.inputLineCount][2];
         
         String[] first, last;
         String inputLine, inputLineReversed;
         
-        for (int i = 0; i < this.input.length; i++) {
-            inputLine = this.input[i];
+        for (int i = 0; i < this.parsingData.inputLineCount; i++) {
+            inputLine = this.parsingData.input[i];
             inputLineReversed = new StringBuilder(inputLine).reverse().toString();
 
             parsedInputs[i] = new String[] { this.getValue(inputLine, regexpFirst), this.getValue(inputLineReversed, regexpLast) };
@@ -99,5 +109,27 @@ class Day01 extends DayBase {
         }
 
         return "0";
+    }
+
+    void createParsingData(String[] input) {
+        this.parsingData = new Day01ParsingData(input);
+    }
+
+    ParsingData getParsingData() {
+        return this.parsingData;
+    }
+
+    void createVisualization(ViewRect viewRect) {
+        // TODO: Implement visualization class
+    }
+
+    DayVisualBase getVisualization() {
+        return null;
+    }
+}
+
+class Day01ParsingData extends ParsingData {
+    Day01ParsingData(String[] input) {
+        super(input);
     }
 }
