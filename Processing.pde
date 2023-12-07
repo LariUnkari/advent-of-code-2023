@@ -392,6 +392,7 @@ DayBase getDaySolution(int dayIndex) {
         case 3: return new Day04();
         case 4: return new Day05();
         case 5: return new Day06();
+        case 6: return new Day07();
         default:
             println("Unsupported day index " + dayIndex + " provided!");
             break;
