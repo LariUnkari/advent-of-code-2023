@@ -46,7 +46,7 @@ abstract class DayVisualPageView extends DayVisualBase {
         textSize(this.pageLabelTitleFontSize);
         text("PAGE", posX, this.pageLabelY);
         textSize(this.pageLabelNumberFontSize);
-        text(this.pageIndex, posX, this.pageLabelY + pageLabelTitleFontSize);
+        text(this.pageIndex + 1, posX, this.pageLabelY + pageLabelTitleFontSize);
     }
 
     void onMousePressed() {

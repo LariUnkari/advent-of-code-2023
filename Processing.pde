@@ -367,7 +367,7 @@ void initDaySolution() {
     this.clearHoveredButton();
     this.isSelectingInput = false;
     this.isStartingDaySolution = true;
-    this.selectedDaySolution.init(new ViewRect(10, 60, width - 20, height - 60), this.selectedInput);
+    this.selectedDaySolution.init(new ViewRect(10, 60, width - 20, height - 60 - 10), this.selectedInput);
 }
 
 void runDaySolution() {
