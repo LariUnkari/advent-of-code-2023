@@ -23,8 +23,144 @@ class Day10 extends DayBase {
         int answer = this.parsingData.path.size() / 2;
         println("Part 1: Farthest point is " + answer + " steps away");
     }
-    void part2() {}
+    void part2() {
+        HashMap<Integer,Point2> closedMap = new HashMap<Integer,Point2>();
+        HashMap<Integer,Point2> foundTilesMap = new HashMap<Integer,Point2>();
         
+        int x, y, k;
+        int size = 0;
+        
+        for (y = 0; y < this.parsingData.heightWithSubgrid; y++) {
+            for (x = 0; x < this.parsingData.widthWithSubgrid; x++) {
+                k = this.getSubgridPointIndex(x, y);
+
+                if (closedMap.containsKey(k)) {
+                    continue;
+                }
+
+                closedMap.put(k, new Point2(x, y));
+
+                if (this.parsingData.pathMap.containsKey(k)) {
+                    continue;
+                }
+
+                if (x % 2 == 0 && y % 2 == 0) {
+                    foundTilesMap.put(k, new Point2(x, y));
+                    // char c = this.parsingData.mapWithSubgrid[y][x];
+                    // println("Putting initial tile '" + c + "' at " + x + "," + y + " to found tiles, index " + k);
+                }
+
+                size += this.findClosedArea(x, y, this.parsingData.widthWithSubgrid, this.parsingData.heightWithSubgrid,
+                    closedMap, foundTilesMap, this.parsingData.pathMap);
+            }
+        }
+
+        println("Part 2: found a total of " + size + " closed spaces");
+
+        for (y = 0; y < this.parsingData.heightWithSubgrid; y++) {
+            print("[");
+            for (x = 0; x < this.parsingData.widthWithSubgrid; x++) {
+                k = this.getSubgridPointIndex(x, y);
+                if (this.parsingData.pathMap.containsKey(k)) {
+                    print('+');
+                } else if (foundTilesMap.containsKey(k)) {
+                    print('I');
+                } else {
+                    print(this.parsingData.mapWithSubgrid[y][x]);
+                }
+                
+            }
+            println("]");
+        }
+    }
+
+    int getPointIndex(int x, int y) {
+        return y * this.parsingData.width + x;
+    }
+
+    int getSubgridPointIndex(int x, int y) {
+        return y * this.parsingData.widthWithSubgrid + x;
+    }
+
+    int findClosedArea(int fromX, int fromY, int mapWidth, int mapHeight, HashMap<Integer,Point2> closedMap,
+        HashMap<Integer,Point2> foundTilesMap, HashMap<Integer,Point2> pathMap) {
+
+        ArrayList<Point2> openList = new ArrayList<Point2>();
+        Point2 p = new Point2(fromX, fromY);
+        openList.add(p);
+
+        int listIndex = 0;
+        int areaSize = fromX % 2 == 0 && fromY % 2 == 0 ? 1 : 0;
+
+        int i, k, ax, ay, bx, by;
+        char c;
+        Point2 d, f;
+        boolean isOpen = false;
+
+        while (listIndex < openList.size()) {
+            if (listIndex >= 1000000) {
+                println("Panicking out after " + listIndex + " points visited");
+                break;
+            }
+
+            f = openList.get(listIndex);
+            ax = f.x;
+            ay = f.y;
+            // println("Seeking from sub grid position " + f.x + "," + f.y);
+
+            for (i = 0; i < GridVectors.length; i++) {
+                d = GridVectors[i];
+                bx = ax + d.x;
+                by = ay + d.y;
+
+                if (bx < 0 || bx >= mapWidth || by < 0 || by >= mapHeight) {
+                    // if (!isOpen) {
+                    //     println("Found edge of area at " + bx + "," + by);
+                    // }
+                    isOpen = true;
+                    continue;
+                }
+
+                k = this.getSubgridPointIndex(bx, by);
+                if (closedMap.containsKey(k)) {
+                    // println("Space " + bx + "," + by + " was already visited");
+                    continue;    
+                }
+
+                p = new Point2(bx, by);
+                closedMap.put(k, p);
+
+                if (!pathMap.containsKey(k)) {
+                    openList.add(p);
+
+                    if (bx % 2 == 0 && by % 2 == 0) {
+                        // println("Found new map space at " + bx + "," + by);
+                        foundTilesMap.put(k, p);
+                        areaSize++;
+                    // } else {
+                    //     println("Found new subgrid space at " + bx + "," + by);
+                    }
+                } else {
+                    c = this.parsingData.mapWithSubgrid[by][bx];
+                    // println("Found path space '" + c + "' at " + bx + "," + by);
+                }
+            }
+
+            listIndex++;
+        }
+
+        // for (i = 1; i < openList.size(); i++) {
+        //     p = openList.get(i);
+        //     k = by * this.parsingData.height + bx;
+        //     closedMap.put(k, p);
+        // }
+
+        if (areaSize > 0) {
+            println("Found an area of size " + areaSize + " that is " + (isOpen ? "OPEN" : "CLOSED"));
+        }
+
+        return isOpen ? 0 : areaSize;
+    }
 
     void run() {
         this.parsingData.isParsingData = true;
@@ -51,7 +187,7 @@ class Day10 extends DayBase {
                 vec.x = this.parsingData.startX + direction.x;
                 vec.y = this.parsingData.startY + direction.y;
 
-                if (vec.y < 0 || vec.y >= this.parsingData.map.length || vec.x < 0 || vec.x >= this.parsingData.map[vec.y].length) {
+                if (vec.y < 0 || vec.y >= this.parsingData.height || vec.x < 0 || vec.x >= this.parsingData.width) {
                     continue;
                 }
 
@@ -76,6 +212,10 @@ class Day10 extends DayBase {
             
             // println("Start dir: " + dirIndex + " resolves to char " + c);
 
+            vec = new Point2(2 * this.parsingData.startX, 2 * this.parsingData.startY);
+            i = this.getSubgridPointIndex(vec.x, vec.y);
+            this.parsingData.pathMap.put(i, vec);
+
             this.parsingData.path.add(new Point2(this.parsingData.startX, this.parsingData.startY));
             this.parsingData.startPipe = c;
             this.parsingData.loopX = this.parsingData.startX;
@@ -83,7 +223,7 @@ class Day10 extends DayBase {
             this.parsingData.loopNextDirection = k;
             this.parsingData.isStartValid = true;
             
-            println("Start position: " + this.parsingData.startX + "," + this.parsingData.startY + ", start direction: " + k);
+            println("Start position: " + this.parsingData.startX + "," + this.parsingData.startY + ", subgrid position " + vec.x + "," + vec.y + ", start direction: " + k);
 
             return false;
         }
@@ -91,22 +231,42 @@ class Day10 extends DayBase {
         if (!this.parsingData.isLoopFound) {
             Point2 dir = GridVectors[this.parsingData.loopNextDirection];
             Point2 vec = new Point2(this.parsingData.loopX, this.parsingData.loopY);
+            Point2 sub = new Point2(0, 0);
+            Point2 p;
             char c = this.parsingData.map[vec.y][vec.x];
 
             // println("Looking from '" + c + "' at " + vec.x + "," + vec.y + " to dir " +
             //     this.parsingData.loopNextDirection + ": " + dir.x + "," + dir.y);
 
+            sub.x = 2 * vec.x + dir.x;
+            sub.y = 2 * vec.y + dir.y;
             vec.x += dir.x;
             vec.y += dir.y;
 
+            // First mark the subgrid place for part 2
+            c = this.getCharFromConnectionFlags(1 << this.parsingData.loopNextDirection |
+                1 << Directions.reverseMapDirection(this.parsingData.loopNextDirection));
+            // println("Subgrid pipe at " + sub.x + "," + sub.y + " is '" + c + "' from direction " + this.parsingData.loopNextDirection);
+            this.parsingData.mapWithSubgrid[sub.y][sub.x] = c;
+            this.parsingData.pathMap.put(this.getSubgridPointIndex(sub.x, sub.y), new Point2(sub.x, sub.y));
+
+            // Then proceed to actual position (total grid distance of 2)
             if (vec.x == this.parsingData.startX && vec.y == this.parsingData.startY) {
+                println("Loop validated, path length is " + this.parsingData.path.size());
                 this.parsingData.isLoopFound = true;
                 this.parsingData.isParsingData = false;
-                println("Loop validated, path length is " + this.parsingData.path.size());
+
                 return false;
             } else {
                 // println("Next position " + vec.x + "," + vec.y + " is not start position " + this.parsingData.startX + "," + this.parsingData.startY);
-                this.parsingData.path.add(new Point2(vec.x, vec.y));
+                p = new Point2(vec.x, vec.y);
+
+                this.parsingData.path.add(p);
+
+                sub.x = 2 * vec.x;
+                sub.y = 2 * vec.y;
+                this.parsingData.pathMap.put(this.getSubgridPointIndex(sub.x, sub.y), new Point2(sub.x, sub.y));
+
                 if (this.parsingData.path.size() % 100 == 0) {
                     println("Path length: " + this.parsingData.path.size() + " < " + this.parsingData.mapArea);
                 }
@@ -184,25 +344,37 @@ class Day10 extends DayBase {
             if (!this.parsingData.isStartFound) {
                 println("ERROR: Unable to find start position!");
             }
-            println("Map parsed, found " + this.parsingData.spaces.size() + " empty spaces");
+            
             this.parsingData.isParsingData = false;
             return;
         }
 
         char c;
-        for (int i = 0; i < this.parsingData.width; i++) {
-            c = this.parsingData.input[this.parsingData.inputLineIndex].charAt(i);
-            this.parsingData.map[this.parsingData.inputLineIndex][i] = c;
+        int y, sx, sy;
+
+        for (int x = 0; x < this.parsingData.width; x++) {
+            c = this.parsingData.input[this.parsingData.inputLineIndex].charAt(x);
+            y = this.parsingData.inputLineIndex;
+            sx = x * 2 + 1;
+            sy = y * 2 + 1;
+            this.parsingData.map[y][x] = c;
+
+            // Also mark subgrid position as open space, it will be changed later if needed
+            this.parsingData.mapWithSubgrid[2 * y][2 * x] = c;
+            if (sx < this.parsingData.widthWithSubgrid && sy < this.parsingData.heightWithSubgrid) {
+                this.parsingData.mapWithSubgrid[sy][sx] = '.';
+            }
+
             if (c == 'S') {
-                println("Found start at position " + i + " of line " + this.parsingData.inputLineIndex);
-                this.parsingData.startX = i;
-                this.parsingData.startY = this.parsingData.inputLineIndex;
+                println("Found start at position " + x + " of line " + this.parsingData.inputLineIndex +
+                    ", equating to position " + x + "," + y);
+
+                this.parsingData.startX = x;
+                this.parsingData.startY = y;
                 this.parsingData.isStartFound = true;
-            } else {
-                // println("'" + c + "' is not starting position, at " + i + "," + this.parsingData.inputLineIndex);
-                if (c == '.') {
-                    this.parsingData.spaces.add(new Point2(i, this.parsingData.inputLineIndex));
-                }
+            // } else {
+            //     println("'" + c + "' is not starting position, at " + x + " of line " + this.parsingData.inputLineIndex +
+            //         ", equating to position " + x + "," + y);
             }
         }
 
@@ -227,10 +399,13 @@ class Day10 extends DayBase {
 
 class Day10ParsingData extends ParsingData {
     public char[][] map;
+    public char[][] mapWithSubgrid;
     public int width;
     public int height;
     public int mapArea;
-    public ArrayList<Point2> spaces;
+    public int widthWithSubgrid;
+    public int heightWithSubgrid;
+    public int mapAreaWithSubgrid;
     public boolean isStartFound;
     public boolean isStartValid;
     public char startPipe;
@@ -243,6 +418,7 @@ class Day10ParsingData extends ParsingData {
     public int loopX;
     public int loopY;
     public ArrayList<Point2> path;
+    public HashMap<Integer,Point2> pathMap;
 
     Day10ParsingData(String[] input) {
         super(input);
@@ -258,16 +434,32 @@ class Day10ParsingData extends ParsingData {
         this.loopX = -1;
         this.loopY = -1;
         this.path = new ArrayList<Point2>();
-        this.spaces = new ArrayList<Point2>();
-        this.map = new char[input.length][];
+        this.pathMap = new HashMap<Integer,Point2>();
 
         this.width = input[0].length();
         this.height = input.length;
         this.mapArea = this.width * this.height;
         println("Map dimensions " + this.width + "x" + this.height + " has an area of " + this.mapArea);
 
-        for (int y = 0; y < this.height; y++) {
+        int x, y;
+
+        this.map = new char[this.height][];
+        for (y = 0; y < this.height; y++) {
             this.map[y] = new char[this.width];
+        }
+
+        this.widthWithSubgrid = 2 * this.width - 1;
+        this.heightWithSubgrid = 2 * this.height - 1;
+        this.mapAreaWithSubgrid = this.widthWithSubgrid * this.heightWithSubgrid;
+        println("Map dimensions with subgrid " + this.widthWithSubgrid + "x" + this.heightWithSubgrid +
+            " has an area of " + this.mapAreaWithSubgrid);
+
+        this.mapWithSubgrid = new char[this.heightWithSubgrid][];
+        for (y = 0; y < this.heightWithSubgrid; y++) {
+            this.mapWithSubgrid[y] = new char[this.widthWithSubgrid];
+            for (x = 0; x < this.widthWithSubgrid; x++) {
+                this.mapWithSubgrid[y][x] = '.'; // For now mark all subgrid spaces as open ground;
+            }
         }
     }
 }
