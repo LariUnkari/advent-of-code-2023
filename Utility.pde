@@ -18,6 +18,44 @@ class ViewRect {
     }
 }
 
+class Point2 {
+    public int x;
+    public int y;
+
+    Point2(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+enum MapDirection {
+    North, East, South, West
+}
+
+static class Directions {
+    static MapDirection[] mapDirections = new MapDirection[] {
+        MapDirection.North, MapDirection.East, MapDirection.South, MapDirection.West
+    };
+
+    static int getIndexOfMapDirection(MapDirection from) {
+        if (from == MapDirection.North) { return 0; }
+        if (from == MapDirection.East) { return 1; }
+        if (from == MapDirection.South) { return 2; }
+        return 3;
+    }
+
+    static MapDirection reverseMapDirection(MapDirection from) {
+        if (from == MapDirection.North) { return MapDirection.South; }
+        if (from == MapDirection.East) { return MapDirection.West; }
+        if (from == MapDirection.South) { return MapDirection.North; }
+        return MapDirection.East;
+    }
+
+    static int reverseMapDirection(int from) {
+        return (from + mapDirections.length / 2) % mapDirections.length;
+    }
+}
+
 static class Primes {
     private static boolean isInitialized;
     private static ArrayList<Integer> primesList;
